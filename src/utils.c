@@ -9,8 +9,8 @@
 #include <string.h>
 #include <sched.h>
 
-/* Private state */
-static int g_kpwn_debug = 0;
+/* Debug state (extern in utils.h for DEBUG macro) */
+int g_kpwn_debug = 0;
 
 /* Debug control */
 void utils_init(int argc, char **argv)

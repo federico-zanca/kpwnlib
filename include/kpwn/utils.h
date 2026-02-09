@@ -68,6 +68,9 @@ void utils_init(int argc, char **argv);
 
 void utils_set_debug(int enabled);
 
+/* Exposed so DEBUG() can be header-only without a function call. */
+extern int g_kpwn_debug;
+
 #define utils_debug_enabled()  (g_kpwn_debug)
 
 /**
