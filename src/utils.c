@@ -37,6 +37,8 @@ void utils_debug_pause(void)
     (void)read(0, buf, sizeof(buf));
 }
 
+
+/* Device interaction  */
 int open_dev(const char *path, int flags)
 {
     int fd = open(path, flags);
@@ -45,6 +47,7 @@ int open_dev(const char *path, int flags)
     OK("Opened %s  →  fd %d", path, fd);
     return fd;
 }
+
 
 
 void hexdump(const void *addr, size_t len)
@@ -77,6 +80,7 @@ void hexdump(const void *addr, size_t len)
 }
 
 
+
 int pin_cpu(int cpu)
 {
     cpu_set_t set;
@@ -88,10 +92,6 @@ int pin_cpu(int cpu)
     }
     INFO("Pinned to CPU %d", cpu);
     return 0;
-}
-
-int pinCPU(void){
-	return pin_cpu(0);
 }
 
 

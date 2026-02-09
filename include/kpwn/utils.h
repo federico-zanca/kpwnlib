@@ -49,6 +49,7 @@ void hexdump(const void *addr, size_t len);
  *           Returns 0 on success, -1 on error.
  */
 int pin_cpu(int cpu);
+#define pinCPU() pin_cpu(0)
 
 /* Post-privesc */
 
