@@ -17,6 +17,13 @@ typedef int16_t   s16;
 typedef int32_t   s32;
 typedef int64_t   s64;
 
+#if defined(__x86_64__)
+typedef u64 reg_t;
+#elif defined(__i386__)
+typedef u32 reg_t;
+#else
+typedef unsigned long reg_t;
+#endif
 
 #define NO_KASLR_BASE    0xffffffff81000000ULL
 #define PAGE_SIZE_4K    0x1000ULL

@@ -56,14 +56,14 @@ void hexdump(const void *addr, size_t len)
     u64 i;
     printf("\n------------------------HexDump------------------------\n");
     for(i = 0 ; i < (len / 0x10); i++){
-        printf("0x%016lx:\t0x%016lx\t0x%016lx\n", i*0x10, *(u64 *)(addr + i*0x10), *(u64 *)(addr + i*0x10 + 8));
+        printf("0x%016lx:\t0x%016lx\t0x%016lx\n", (unsigned long)(i*0x10), (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10)), (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10 + 8)));
     }
 
     if(more != 0){
-        printf("0x%016lx:\t", i*0x10);
+        printf("0x%016lx:\t", (unsigned long)(i*0x10));
         int offset = 0;
         if(more > 8){
-            printf("%016lx", *(u64 *)(addr + i*0x10));
+            printf("%016lx", (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10)));
             offset = 8;
         }
 
@@ -72,7 +72,7 @@ void hexdump(const void *addr, size_t len)
             printf("  ");
         }
         for(int j=8-more; j<8; j++){
-            printf("%02x", *(u8 *)(addr + i*0x10 + offset + (8-1-j)));
+            printf("%02x", *(const u8 *)((const u8 *)addr + i*0x10 + offset + (8-1-j)));
         }
     }
     puts("\n-------------------------------------------------------\n");
@@ -110,15 +110,23 @@ void get_shell(void)
 void save_state(user_state_t *state)
 {
     __asm__ volatile(
+#if defined(__x86_64__)
         "mov %0, cs;"
         "mov %1, ss;"
         "mov %2, rsp;"
         "pushfq;"
         "pop %3;"
+#else
+        "mov %0, cs;"
+        "mov %1, ss;"
+        "mov %2, esp;"
+        "pushfd;"
+        "pop %3;"
+#endif
         : "=r"(state->cs),
           "=r"(state->ss),
-          "=r"(state->rsp),
-          "=r"(state->rflags)
+          "=r"(state->sp),
+          "=r"(state->flags)
         :
         : "memory"
     );
@@ -128,16 +136,25 @@ void save_state(user_state_t *state)
 void restore_state(user_state_t *state)
 {
     __asm__ volatile(
+#if defined(__x86_64__)
         "mov rsp, %0;"
         "push %1;"       // SS
         "push %0;"       // RSP
         "push %2;"       // RFLAGS
         "push %3;"       // CS
         "iretq;"
+#else
+        "mov esp, %0;"
+        "push %1;"       // SS
+        "push %0;"       // ESP
+        "push %2;"       // EFLAGS
+        "push %3;"       // CS
+        "iret;"
+#endif
         :
-        : "r"(state->rsp),
+        : "r"(state->sp),
           "r"(state->ss),
-          "r"(state->rflags),
+          "r"(state->flags),
           "r"(state->cs)
         : "memory"
     );
@@ -146,4 +163,25 @@ void restore_state(user_state_t *state)
 void test_user_space_func(void)
 {
     OK("test_user_space_func executed");
+}
+
+static inline u32 get_kmalloc_size(uint32_t x) {
+    if (x <= 8)   return 8;
+    if (x <= 16)  return 16;
+    if (x <= 32)  return 32;
+    if (x <= 64)  return 64;
+    if (x <= 96)  return 96;
+    if (x <= 128) return 128;
+    if (x <= 192) return 192;
+
+    // Bit-smearing round up to power of 2
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x++;
+    
+    return x;
 }

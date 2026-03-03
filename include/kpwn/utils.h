@@ -100,10 +100,10 @@ void utils_debug_pause(void);
 
 /* User-space context (used for iretq / trampoline returns) */
 typedef struct {
-	u64 cs;
-	u64 ss;
-	u64 rsp;
-	u64 rflags;
+        reg_t cs;
+        reg_t ss;
+        reg_t sp;
+        reg_t flags;
 } user_state_t;
 
 /**
@@ -127,5 +127,23 @@ void test_user_space_func(void);
 #define ALIGN_UP(x, a)          (((x) + ((a)-1)) & ~((a)-1))
 #define ALIGN_DOWN(x, a)        ((x) & ~((a)-1))
 #define IS_ALIGNED(ptr, align)  (((uintptr_t)(ptr) & ((align)-1)) == 0)
+
+#define ROUNDUP_POW2(x) \
+    (1UL << (sizeof(unsigned long) * 8 - __builtin_clzl((x) - 1)))
+
+// The main kmalloc size calculation
+#define GET_KMALLOC_SIZE(x) ( \
+    (x) <= 8   ? 8   : \
+    (x) <= 16  ? 16  : \
+    (x) <= 32  ? 32  : \
+    (x) <= 64  ? 64  : \
+    (x) <= 96  ? 96  : \
+    (x) <= 128 ? 128 : \
+    (x) <= 192 ? 192 : \
+    ROUNDUP_POW2(x)    \
+)
+
+#define ROUNDDOWN_POW2(x) \
+    ((x) == 0 ? 0 : (1UL << ((sizeof(unsigned long) * 8 - 1) - __builtin_clzl(x))))
 
 #endif /* KPWN_UTILS_H */
