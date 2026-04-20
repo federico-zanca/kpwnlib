@@ -84,8 +84,24 @@ install: $(LIB)
 	install -m 644 include/kpwn/*.h         $(DESTDIR)$(PREFIX)/include/kpwn/
 	@echo "Done.  Use:  #include <kpwn/kpwn.h>  and link with  -lkpwn"
 
+# Build and install both 64-bit (default) and 32-bit libraries side-by-side
+.PHONY: install-both
+install-all: all
+	@echo "Installing 64-bit kpwn to $(DESTDIR)$(PREFIX)..."
+	$(MAKE) install
+	@echo "Building 32-bit kpwn..."
+	$(MAKE) clean
+	$(MAKE) CC="gcc -m32" CFLAGS="$(CFLAGS) -m32"
+	@echo "Installing 32-bit library as libkpwn32.a to $(DESTDIR)$(PREFIX)/lib"
+	install -d $(DESTDIR)$(PREFIX)/lib
+	install -m 644 $(BUILDDIR)/$(LIBNAME) $(DESTDIR)$(PREFIX)/lib/libkpwn32.a
+	@echo "Installing headers to $(DESTDIR)$(PREFIX)/include/kpwn (again)"
+	install -m 644 include/kpwn/*.h $(DESTDIR)$(PREFIX)/include/kpwn
+	@echo "Done. Use -lkpwn for 64-bit and -lkpwn32 for 32-bit linking."
+
 uninstall:
 	rm -f  $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
+	rm -f  $(DESTDIR)$(PREFIX)/lib/libkpwn32.a
 	rm -rf $(DESTDIR)$(PREFIX)/include/kpwn
 	@echo "kpwn uninstalled from $(DESTDIR)$(PREFIX)"
 
