@@ -56,14 +56,14 @@ void hexdump(const void *addr, size_t len)
     u64 i;
     printf("\n------------------------HexDump------------------------\n");
     for(i = 0 ; i < (len / 0x10); i++){
-        printf("0x%016lx:\t0x%016lx\t0x%016lx\n", (unsigned long)(i*0x10), (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10)), (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10 + 8)));
+        printf("0x%016lx:\t0x%016lx\t0x%016lx\n", (u64)(i*0x10), (u64)(*(u64 *)((const u8 *)addr + i*0x10)), (u64)(*(u64 *)((const u8 *)addr + i*0x10 + 8)));
     }
 
     if(more != 0){
-        printf("0x%016lx:\t", (unsigned long)(i*0x10));
+        printf("0x%016lx:\t", (u64)(i*0x10));
         int offset = 0;
         if(more > 8){
-            printf("%016lx", (unsigned long)(*(u64 *)((const u8 *)addr + i*0x10)));
+            printf("%016lx", (u64)(*(u64 *)((const u8 *)addr + i*0x10)));
             offset = 8;
         }
 
