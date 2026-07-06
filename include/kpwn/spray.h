@@ -16,10 +16,28 @@
 #include "types.h"
 #include "log.h"
 #include "utils.h"
+#include <poll.h>
 
+struct rcu_head{
+    void *next;
+    void *func;
+};
+
+struct user_key_payload {
+    struct rcu_head rcu;
+    unsigned short  datalen;
+    char *data[];
+};
+
+struct poll_list{
+    struct poll_list *next;
+    int len;
+    struct pollfd entries[];
+};
 
 int resizePipeBuffer(int pipe[2], size_t kmalloc_target_size);
 
+void spray_seq_ops(int seq_ops[], int start, int end);
 
 /* TODO: Add your declarations here.  Example stubs:
  *
