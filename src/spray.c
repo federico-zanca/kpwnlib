@@ -65,6 +65,30 @@ int alloc_key(int id, char *buff, size_t size){
     return key;
 }
 
+void free_key(int key){
+    long ret;
+
+	ret = keyctl_revoke(key);
+	if(ret<0){
+        DIE("free_key : keyctl_revoke(%d)", key);
+    }
+
+    ret = keyctl_unlink(key, KEY_SPEC_PROCESS_KEYRING);
+    if(ret<0){
+        DIE("free_key : keyctl_unlink(%d)", key);
+    }
+}
+
+void get_key(int key, char *data, size_t size){
+	long ret;
+    ret = keyctl_read(key, data, size);
+
+    if(ret<0){
+        DIE("get_key : keyctl_read(%d)", key);
+    }
+}
+
+
 
 
 

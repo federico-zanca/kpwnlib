@@ -39,6 +39,13 @@ int resizePipeBuffer(int pipe[2], size_t kmalloc_target_size);
 
 void spray_seq_ops(int seq_ops[], int start, int end);
 
+int alloc_key(int id, char *buff, size_t size);
+
+void get_key(int key, char *data, size_t size);
+
+void free_key(int key);
+
+
 /* TODO: Add your declarations here.  Example stubs:
  *
  * int  spray_msg_alloc(int qid, const void *data, size_t size);
